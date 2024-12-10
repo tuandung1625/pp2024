@@ -52,7 +52,7 @@ def input_marks(students, courses, marks):
 def show_marks(students, marks):
     course = input("What course would you want to see : ")
     
-    if course not in marks or marks[course] == {}:
+    if marks[course] == {} or course not in marks:
         print("This code haven't entered the mark")
     else:
         for student in students:
