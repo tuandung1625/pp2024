@@ -1,3 +1,6 @@
+from math import floor
+import numpy
+
 class Class(object):
     def __init__(self, id, name):
         self.id = id
@@ -11,15 +14,19 @@ class Student(Class):
         super().__init__(id, name)
         self.dob = dob
 
+    def set_gpa(self, gpa):
+        self.gpa = gpa
+    
     def show(self):
         print(super().show(id, name) + f", date of birth : {self.dob}")
         
 class Course(Class):
-    def __init__(self, id, name):
+    def __init__(self, id, name, credit):
         super().__init__(id, name)
+        self.credit = credit
     
     def show(self):
-        print(super().show(id,name))
+        print(super().show(id,name) + f", credit : {self.credit}")
 
 class Mark(object):
     def __init__(self, student_id, course_id):
@@ -48,7 +55,8 @@ while (True):
     print("--3. LIST COURSES------")
     print("--4. LIST STUDENTS-----")
     print("--5. INPUT MARK--------")
-    print("--6. SHOW MARK---------\n")
+    print("--6. SHOW MARK---------")
+    print("--7. SHOW GPA----------\n")
 
     choice = int(input())
     if (choice == 0):
@@ -76,7 +84,8 @@ while (True):
             id = input("Enter course's ID : ")
             if id not in [course.id for course in courses]:
                 name = input("Enter course's name : ")
-                courses.append(Course(id,name))
+                credit = float(input("Enter course's credit : "))
+                courses.append(Course(id,name,credit))
             else:
                 print("Course ID already exists")
 
@@ -106,19 +115,21 @@ while (True):
         if student_id not in [student.id for student in students]:
             print("Invalid student id")
             continue
+        
+        markk = float(input("Enter mark : "))
+        markk = floor(markk*10)/10
 
-        if student_id not in [m.get_student_id() for m in marks]:
-            markk = float(input("Enter mark : "))
-            print("chay lenh tren")
+        existing_mark = 0
+        for mark in marks:
+            if mark.get_student_id() == student_id and mark.get_course_id() == course_id:
+                existing_mark = mark 
+                break
+        if (existing_mark != 0):
+            existing_mark.set_mark(markk)
+        else:
             mark = Mark(student_id, course_id)
             mark.set_mark(markk)
             marks.append(mark)
-        else:
-            markk = float(input("Enter mark : "))
-            print("chay lenh duoi")
-            for mark in marks:
-                if mark.get_student_id() == student_id and mark.get_course_id() == course_id:
-                    mark.set_mark(markk)
         
     elif (choice == 6):
         course_id = input("Select course id to show mark :")
@@ -128,6 +139,17 @@ while (True):
         for mark in marks:
             if mark.get_course_id() == course_id:
                 print("Student id : {}, Mark : {}".format(mark.get_student_id(), mark.get_mark()))
+
+    elif (choice == 7):
+        credits = numpy.array([course.credit for course in courses])
+        for student in students:
+            scores = numpy.array([mark.get_mark() for mark in marks if mark.get_student_id() == student.id])
+            weighted_sum = numpy.sum(credits * scores)
+            gpa = weighted_sum/numpy.sum(credits)
+            student.set_gpa(gpa)
+        students_sorted = sorted(students, key=lambda x: x.gpa, reverse=True)
+        for student in students_sorted:
+            print("Student name: {}, GPA: {:.2f}".format(student.name, student.gpa))  
 
     else:
         print("Invalid choice")
