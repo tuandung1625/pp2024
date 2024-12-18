@@ -140,9 +140,6 @@ class University(object):
             print("Student name: {}, GPA: {:.2f}".format(student.name, student.gpa))
     
     def execute(self):
-        students = []
-        courses = []
-        marks = []
         while (True):
             print("---ENTER YOUR CHOICE---")
             print("--0. EXIT THE PROGRAM--")
