@@ -1,3 +1,4 @@
+import curses
 from math import floor
 import numpy
 
@@ -6,7 +7,7 @@ class Class(object):
         self.id = id
         self.name = name
 
-    def show(self, id, name):
+    def show(self):
         return f"ID : {self.id}, NAME : {self.name}"
 
 class Student(Class):
@@ -18,7 +19,7 @@ class Student(Class):
         self.gpa = gpa
     
     def show(self):
-        print(super().show(self.id, self.name) + f", date of birth : {self.dob}")
+        return super().show() + f", date of birth : {self.dob}"
         
 class Course(Class):
     def __init__(self, id, name, credit):
@@ -26,7 +27,7 @@ class Course(Class):
         self.credit = credit
     
     def show(self):
-        print(super().show(self.id,self.name) + f", credit : {self.credit}")
+        return super().show() + f", credit : {self.credit}"
 
 class Mark(object):
     def __init__(self, student_id, course_id):
@@ -44,57 +45,148 @@ class Mark(object):
         return self.__mark
 
 class University(object):
-    def __init__(self, students, courses, marks):
-        self.students = students
-        self.courses = courses
-        self.marks = marks
+    def __init__(self):
+        self.students = []
+        self.courses = []
+        self.marks = []
 
-    def input_student(self):
+    def input_student(self, stdscr):
+        stdscr.clear()
+        # input number of students
         if len(self.students) == 0:
-            number_of_student = int(input("Enter the number of students : "))
+            stdscr.addstr(0,0, "Enter the number of students : ")
+            curses.echo()
+            number_of_student = int(stdscr.getstr().decode())
         else:
-            number_of_student = int(input("Enter the number of additional students : "))
-        for i in range(number_of_student):
-            id = input("Enter student's ID : ")
-            if id not in [student.id for student in self.students]:
-                name = input("Enter student's name : ")
-                dob = input("Enter student's date of birth : ")
-                self.students.append(Student(id,name,dob))
-            else:
-                print("Student ID already exists")
-
-    def input_course(self):
-        if len(self.courses) == 0:
-            number_of_course = int(input("Enter the number of courses : "))
-        else:
-            number_of_course = int(input("Enter the number of additional courses : "))
-        for i in range(number_of_course):
-            id = input("Enter course's ID : ")
-            if id not in [course.id for course in self.courses]:
-                name = input("Enter course's name : ")
-                credit = float(input("Enter course's credit : "))
-                self.courses.append(Course(id,name,credit))
-            else:
-                print("Course ID already exists")
-    
-    def input_mark(self):
-        print("List of courses : ")
-        for course in self.courses:
-            course.show()
-        course_id = input("Select course id to input mark : ")
-        if course_id not in [course.id for course in self.courses]:
-            print("Invalid course id")
-            return
-
-        print("List of students : ")
-        for student in self.students:
-            student.show()
-        student_id = input("Select student id to input mark : ")
-        if student_id not in [student.id for student in self.students]:
-            print("Invalid student id")
-            return
+            stdscr.addstr(0,0, "Enter the number of additional students : ")
+            curses.echo()
+            number_of_student = int(stdscr.getstr().decode())
         
-        markk = float(input("Enter mark : "))
+        # input student's information
+        length = 0
+        for i in range(number_of_student):
+            length += 1
+            stdscr.addstr(length,0, "Enter student's ID : ")
+            curses.echo()
+            id = stdscr.getstr().decode()
+
+            while (id in [student.id for student in self.students]):
+                stdscr.addstr(length + 1,0, "Student ID already exists", curses.color_pair(2))
+                stdscr.addstr(length + 2,0, "Enter student's ID : ")
+                curses.echo()
+                id = stdscr.getstr().decode()
+                length += 2
+
+            stdscr.addstr(length + 1,0, "Enter student's name : ")
+            curses.echo()
+            name = stdscr.getstr().decode()
+            stdscr.addstr(length + 2,0, "Enter student's date of birth : ")
+            curses.echo()
+            dob = stdscr.getstr().decode()
+            self.students.append(Student(id,name,dob))
+            length += 2
+        curses.noecho()
+
+    def input_course(self, stdscr):
+        stdscr.clear()
+        # input number of courses
+        if len(self.courses) == 0:
+            stdscr.addstr(0,0, "Enter the number of courses : ")
+            curses.echo()
+            number_of_course = int(stdscr.getstr().decode())
+        else:
+            stdscr.addstr(0,0, "Enter the number of additional courses : ")
+            curses.echo()
+            number_of_course = int(stdscr.getstr().decode())
+
+        # input course's information
+        length = 0
+        for i in range(number_of_course):
+            length += 1
+            stdscr.addstr(length,0, "Enter course's ID : ")
+            curses.echo()
+            id = stdscr.getstr().decode()
+
+            while (id in [course.id for course in self.courses]):
+                stdscr.addstr(length + 1,0, "Course ID already exists", curses.color_pair(2))
+                stdscr.addstr(length + 2,0, "Enter course's ID : ")
+                curses.echo()
+                id = stdscr.getstr().decode()
+                length += 2
+
+            stdscr.addstr(length + 1,0, "Enter course's name : ")
+            curses.echo()
+            name = stdscr.getstr().decode()
+            length += 1
+
+            while True:
+                try:
+                    stdscr.addstr(length + 1, 0, "Enter course's credit : ")
+                    credit = float(stdscr.getstr().decode())
+                    self.courses.append(Course(id,name,credit))
+                    length += 1
+                    break  
+                except ValueError:
+                    stdscr.addstr(length + 2, 0, "Invalid credit type. Please enter a valid number.", curses.color_pair(2))
+                    length += 2
+        curses.noecho()
+    
+    def input_mark(self, stdscr):
+        # Show list of courses
+        stdscr.clear()
+        stdscr.addstr(0,0, "List of courses : ")
+        for idx, course in enumerate(self.courses):
+            stdscr.addstr(idx+1, 0, course.show())
+        stdscr.refresh()
+
+        # input and validate course id
+        length = len(self.courses) + 1
+        while (True):
+            stdscr.addstr(length,0,"Select course id to input mark : ")
+            curses.echo()
+            course_id = stdscr.getstr().decode()
+            if course_id not in [course.id for course in self.courses]:
+                stdscr.addstr(length + 1,0, "Invalid course id", curses.color_pair(2))
+                length += 2
+                continue
+            break
+
+        # Show list of students
+        stdscr.clear()
+        stdscr.addstr(0,0, "List of students : ")
+        for idx, student in enumerate(self.students):
+            stdscr.addstr(idx+1, 0, student.show())
+        stdscr.refresh()
+
+        # input and validate student id
+        length = len(self.students) + 1
+        while (True):
+            stdscr.addstr(length, 0, "Select student id to input mark : ")
+            curses.echo()
+            student_id = stdscr.getstr().decode()
+            if student_id not in [student.id for student in self.students]:
+                stdscr.addstr(length + 1,0, "Invalid student id", curses.color_pair(2))
+                length += 2
+                continue
+            break
+        
+        # input and validate mark
+        stdscr.clear()
+        length = 0
+        while (True):
+            try:
+                stdscr.addstr(length,0, "Enter mark :")
+                curses.echo()
+                markk = float(stdscr.getstr().decode())
+                if markk < 0:
+                    stdscr.addstr(length + 1,0, "Invalid mark", curses.color_pair(2))
+                    length += 2
+                    continue
+                break
+            except ValueError as e:
+                stdscr.addstr(length + 1, 0, f"Invalid mark: {str(e)}", curses.color_pair(2))
+                length += 2  
+            
         markk = floor(markk*10)/10
 
         existing_mark = 0
@@ -108,27 +200,51 @@ class University(object):
             mark = Mark(student_id, course_id)
             mark.set_mark(markk)
             self.marks.append(mark)
+        curses.noecho()
     
-    def show_student(self):
-        print("List of students : ")
-        for student in self.students:
-            student.show()
+    def show_student(self, stdscr):
+        stdscr.clear()
+        stdscr.addstr(0,0, "List of students : ")
+        for idx, student in enumerate(self.students):
+            stdscr.addstr(idx+2,0,student.show())
+        stdscr.addstr(len(self.students) + 3,0, "Press any key to continue...")
+        stdscr.refresh()
+        stdscr.getch()
 
-    def show_course(self):
-        print("List of courses : ")
-        for course in self.courses:
-            course.show()
+    def show_course(self, stdscr):
+        stdscr.clear()
+        stdscr.addstr(0,0, "List of courses : ")
+        for idx, course in enumerate(self.courses):
+            stdscr.addstr(idx+2, 0, course.show())
+        stdscr.addstr(len(self.courses) + 3,0, "Press any key to continue...")
+        stdscr.refresh()
+        stdscr.getch()
 
-    def show_mark(self):
-        course_id = input("Select course id to show mark :")
+    def show_mark(self, stdscr):
+        stdscr.clear()
+        # input course id to show mark
+        stdscr.addstr(0,0,"Select course id to show mark : ")
+        curses.echo()
+        course_id = stdscr.getstr().decode()
+
+        # show student's mark
         for course in self.courses:
             if course.id == course_id:
-                print("Course name : {}".format(course.name))
+                stdscr.addstr(2,0,"Course name : {}".format(course.name))
+        length = 3
         for mark in self.marks:
             if mark.get_course_id() == course_id:
-                print("Student id : {}, Mark : {}".format(mark.get_student_id(), mark.get_mark()))
-
-    def show_gpa(self):
+                length += 1
+                stdscr.addstr(length,0,"Student id : {}, Mark : {}".format(mark.get_student_id(), mark.get_mark()))
+        
+        curses.noecho()
+        stdscr.addstr(len(self.students) + 5,0, "Press any key to continue...")
+        stdscr.refresh()
+        stdscr.getch()
+        
+    def show_gpa(self, stdscr):
+        stdscr.clear()
+        stdscr.addstr(0,0, "List of students sorted by GPA : ")
         credits = numpy.array([course.credit for course in self.courses])
         for student in self.students:
             scores = numpy.array([mark.get_mark() for mark in self.marks if mark.get_student_id() == student.id])
@@ -136,40 +252,73 @@ class University(object):
             gpa = weighted_sum/numpy.sum(credits)
             student.set_gpa(gpa)
         students_sorted = sorted(self.students, key=lambda x: x.gpa, reverse=True)
-        for student in students_sorted:
-            print("Student name: {}, GPA: {:.2f}".format(student.name, student.gpa))
+        for idx, student in enumerate(students_sorted):
+            stdscr.addstr(idx+2,0, student.show() + f", GPA : {student.gpa:.2f}")
+        stdscr.addstr(len(self.students) + 3,0, "Press any key to continue...")
+        stdscr.refresh()
+        stdscr.getch()
     
-    def execute(self):
+    def execute(self, stdscr):
+        curses.curs_set(0)  # Hide the cursor
+        current_row = 0
+        menu = [
+            "---ENTER YOUR CHOICE---",
+            "0. EXIT THE PROGRAM",
+            "1. INPUT STUDENTS",
+            "2. INPUT COURSES",
+            "3. LIST COURSES",
+            "4. LIST STUDENTS",
+            "5. INPUT MARK",
+            "6. SHOW MARK",
+            "7. SHOW GPA"
+        ]
+
         while (True):
-            print("---ENTER YOUR CHOICE---")
-            print("--0. EXIT THE PROGRAM--")
-            print("--1. INPUT STUDENTS----")
-            print("--2. INPUT COURSES-----")
-            print("--3. LIST COURSES------")
-            print("--4. LIST STUDENTS-----")
-            print("--5. INPUT MARK--------")
-            print("--6. SHOW MARK---------")
-            print("--7. SHOW GPA----------\n")
+            # Display menu
+            stdscr.clear()
+            for i, option in enumerate(menu):
+                if i == current_row:
+                    stdscr.attron(curses.color_pair(1))
+                    stdscr.addstr(i + 2, 0, option)
+                    stdscr.attroff(curses.color_pair(1))
+                else:
+                    stdscr.addstr(i + 2, 0, option)
 
-            choice = int(input())
-            if (choice == 0):
-                break
-            elif (choice == 1):
-                self.input_student()
-            elif (choice == 2):
-                self.input_course()
-            elif (choice == 3):
-                self.show_course()
-            elif (choice == 4):
-                self.show_student()
-            elif (choice == 5):
-                self.input_mark()
-            elif (choice == 6):
-                self.show_mark()
-            elif (choice == 7):
-                self.show_gpa()
-            else:
-                print("Invalid choice")
+            stdscr.refresh()
 
-SGP = University([],[],[])
-SGP.execute()
+            # Capture user input
+            key = stdscr.getch()
+            if key == curses.KEY_UP and current_row > 0:
+                current_row -= 1
+            elif key == curses.KEY_DOWN and current_row < len(menu) - 1:
+                current_row += 1
+            elif key == ord("\n"):  # Enter key
+                if current_row == 1: 
+                    break
+                elif current_row == 2:  
+                    self.input_student(stdscr)
+                elif current_row == 3: 
+                    self.input_course(stdscr)
+                elif current_row == 4:
+                    self.show_course(stdscr)
+                elif current_row == 5:
+                    self.show_student(stdscr)
+                elif current_row == 6:
+                    self.input_mark(stdscr)
+                elif current_row == 7:
+                    self.show_mark(stdscr)
+                elif current_row == 8:
+                    self.show_gpa(stdscr)
+                else:
+                    stdscr.addstr(10, 0, "Invalid choice")
+                    stdscr.refresh()
+
+def main(stdscr):
+    curses.start_color()
+    curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_CYAN)
+    curses.init_pair(2, curses.COLOR_RED, curses.COLOR_BLACK)
+
+    SGP = University()
+    SGP.execute(stdscr)
+
+curses.wrapper(main)
