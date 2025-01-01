@@ -1,0 +1,7 @@
+total 12
+drwxrwxrwx 1 tuandungtd16 tuandungtd16  512 Jan  1  2025 .
+drwxrwxrwx 1 tuandungtd16 tuandungtd16  512 Dec 31 16:09 ..
+-rwxrwxrwx 1 tuandungtd16 tuandungtd16 1908 Jan  1 10:56 bai7.py
+-rwxrwxrwx 1 tuandungtd16 tuandungtd16 2418 Dec 30 21:37 hhih.ipynb
+-rwxrwxrwx 1 tuandungtd16 tuandungtd16    0 Jan  1  2025 output.txt
+-rwxrwxrwx 1 tuandungtd16 tuandungtd16 1377 Dec 25 22:07 test.py
